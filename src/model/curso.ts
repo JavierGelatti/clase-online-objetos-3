@@ -106,9 +106,13 @@ export function entra(unaPersona: Persona): EntraAlguien {
 }
 
 export function sale(unaPersona: Persona): SaleAlguien {
+    return saleAlguienConId(unaPersona.id);
+}
+
+export function saleAlguienConId(idDePersona: IdPersona): SaleAlguien {
     return {
         kind: "sale-alguien",
-        idPersona: unaPersona.id,
+        idPersona: idDePersona,
     };
 }
 

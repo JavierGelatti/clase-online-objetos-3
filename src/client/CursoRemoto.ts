@@ -1,6 +1,5 @@
 import { crearEstudiante, Persona, Curso, entra, bajaLaMano, levantaLaMano, crearDocente, IdPersona, Evento, sale } from '../model/curso';
 import { deserializarCurso, serializarEvento } from '../model/jsonCodecs';
-
 type ObservadorCurso = (cursoRemoto: CursoRemoto) => void;
 
 export class CursoRemoto {
@@ -13,7 +12,7 @@ export class CursoRemoto {
       const usuarioActual = esDocente ? crearDocente(nombre) : crearEstudiante(nombre);
 
       const requestsAResolver: ((curso: Curso) => void)[] = [];
-      const websocket = new WebSocket('ws://localhost:8080/');
+      const websocket = new WebSocket(`ws://localhost:8080/ws/${usuarioActual.id}`);
       let cursoRemoto: CursoRemoto | null = null;
 
       websocket.onopen = (evt) => {
