@@ -1,5 +1,7 @@
 import { v4 as generateUUID } from 'uuid';
 
+export type IdPersona = string;
+
 export type Persona = {
     readonly id: IdPersona;
     readonly nombre: string;
@@ -7,29 +9,27 @@ export type Persona = {
     readonly esDocente: boolean;
 }
 
-export type IdPersona = string;
-
 type EntraAlguien = {
     kind: "entra-alguien",
-    personaQueEntra: Persona,
+    persona: Persona,
 }
 
 type SaleAlguien = {
     kind: "sale-alguien",
-    idPersonaQueSale: IdPersona,
+    idPersona: IdPersona,
 }
 
 type AlguienLevantaLaMano = {
     kind: "levanta-la-mano",
-    idPersonaQueLevantaLaMano: IdPersona,
+    idPersona: IdPersona,
 }
 
 type AlguienBajaLaMano = {
     kind: "baja-la-mano",
-    idPersonaQueBajaLaMano: IdPersona,
+    idPersona: IdPersona,
 }
 
-type Evento = EntraAlguien | SaleAlguien | AlguienLevantaLaMano | AlguienBajaLaMano;
+export type Evento = EntraAlguien | SaleAlguien | AlguienLevantaLaMano | AlguienBajaLaMano;
 
 export class Curso {
     private _personas: Persona[];
@@ -43,13 +43,13 @@ export class Curso {
         return eventos.reduce((curso: Curso, evento: Evento) => {
             switch(evento.kind) {
                 case "entra-alguien":
-                    return curso.agregandoA(evento.personaQueEntra);
+                    return curso.agregandoA(evento.persona);
                 case "sale-alguien":
-                    return curso.sin(evento.idPersonaQueSale);
+                    return curso.sin(evento.idPersona);
                 case "levanta-la-mano":
-                    return new Curso(curso._personas.map(p => p.id === evento.idPersonaQueLevantaLaMano ? levantandoLaMano(p) : p))
+                    return new Curso(curso._personas.map(p => p.id === evento.idPersona ? levantandoLaMano(p) : p))
                 case "baja-la-mano":
-                    return new Curso(curso._personas.map(p => p.id === evento.idPersonaQueBajaLaMano ? bajandoLaMano(p) : p))
+                    return new Curso(curso._personas.map(p => p.id === evento.idPersona ? bajandoLaMano(p) : p))
             }
         }, this);
     }
@@ -101,21 +101,21 @@ export function crearEstudiante(nombre: string) : Persona {
 export function entra(unaPersona: Persona): EntraAlguien {
     return {
         kind: "entra-alguien",
-        personaQueEntra: unaPersona,
+        persona: unaPersona,
     };
 }
 
 export function sale(unaPersona: Persona): SaleAlguien {
     return {
         kind: "sale-alguien",
-        idPersonaQueSale: unaPersona.id,
+        idPersona: unaPersona.id,
     };
 }
 
 export function levantaLaMano(unaPersona: Persona): AlguienLevantaLaMano {
     return {
         kind: "levanta-la-mano",
-        idPersonaQueLevantaLaMano: unaPersona.id,
+        idPersona: unaPersona.id,
     };
 }
 
@@ -126,7 +126,7 @@ export function levantandoLaMano(unaPersona: Persona) {
 export function bajaLaMano(unaPersona: Persona): AlguienBajaLaMano {
     return {
         kind: "baja-la-mano",
-        idPersonaQueBajaLaMano: unaPersona.id,
+        idPersona: unaPersona.id,
     };
 }
 

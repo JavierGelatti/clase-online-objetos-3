@@ -13,6 +13,15 @@ module.exports = {
   node: {
     __dirname: true,
   },
+  module: {
+    rules: [
+      {
+        test: /\.tsx?$/,
+        use: 'ts-loader',
+        exclude: /node_modules/,
+      },
+    ],
+  },
   output: {
     path: path.resolve(__dirname, '..', '..', 'server_build'),
     filename: 'index.js'
