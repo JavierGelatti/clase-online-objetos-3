@@ -2,10 +2,9 @@
 import React, { Component } from 'react';
 import { Header, Divider, List, Icon, Button, SemanticCOLORS, Segment } from 'semantic-ui-react';
 import { Curso, Persona } from '../model/curso';
-import { Usuario } from './types';
 
 type Props = {
-    usuarioActual: Usuario & { manoLevantada: boolean },
+    usuarioActual: Persona,
     curso: Curso,
     onLevantarMano: () => Promise<any>,
     onBajarMano: () => Promise<any>,
@@ -64,15 +63,15 @@ export default class VistaCurso extends Component<Props, State> {
             </Segment>
         );
 
-        function ListItemPersona({ usuarioActual, persona } : { usuarioActual: Usuario, persona: Persona }) {
-            const esElUsuarioActual = (persona.id === usuarioActual.idPersona);
+        function ListItemPersona({ usuarioActual, persona } : { usuarioActual: Persona, persona: Persona }) {
+            const esElUsuarioActual = (persona.id === usuarioActual.id);
 
             return (
                 <List.Item>
-                    { usuarioActual.esAdmin && <BotonesAdmin persona={persona} /> }
+                    { usuarioActual.esDocente && <BotonesAdmin persona={persona} /> }
 
                     <Icon
-                        name={ persona.manoLevantada ? 'hand paper' : 'user circle'}
+                        name={ persona.manoLevantada ? 'hand paper' : (persona.esDocente ? 'graduation' : 'user circle')}
                         size='big'
                         color={ persona.manoLevantada ? 'orange' : idToColor(persona.id) }
                     >

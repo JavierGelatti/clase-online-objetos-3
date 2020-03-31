@@ -1,19 +1,20 @@
 import React, { Component } from 'react';
 import VistaCurso from './VistaCurso';
-import { crearEstudiante, crearCursoCon, Persona, Curso, entra, bajaLaMano, levantaLaMano } from '../model/curso';
+import { crearEstudiante, crearCursoCon, Persona, Curso, entra, bajaLaMano, levantaLaMano, crearDocente, IdPersona } from '../model/curso';
 import FormularioLogin from './FormularioLogin';
-import { Usuario } from './types';
 
-type Props = {}
+type Props = {
+  docente: boolean,
+}
 
 type State = {
-  usuarioActual: null | Usuario,
+  idUsuarioActual: null | IdPersona,
   curso: Curso,
 }
 
 export default class App extends Component<Props, State> {
 
-  constructor(props: any) {
+  constructor(props: Props) {
     super(props);
 
     const pepe = { ...crearEstudiante("Pepe Sánchez"), manoLevantada: true };
@@ -22,18 +23,19 @@ export default class App extends Component<Props, State> {
     const curso = crearCursoCon(mirta, pepe, marta);
 
     this.state = {
-      usuarioActual: null,
+      idUsuarioActual: null,
       curso,
     }
   }
 
   render() {
+    const usuarioActual = this.usuarioActual();
     return (
       <div className="App">
         {
-          this.state.usuarioActual ?
+          usuarioActual ?
             <VistaCurso
-              usuarioActual={ {...this.state.usuarioActual, manoLevantada: this.estudianteActual().manoLevantada } }
+              usuarioActual={ usuarioActual }
               curso={ this.state.curso }
               onBajarMano={ () => this.bajarLaMano() }
               onLevantarMano={ () => this.levantarLaMano() }
@@ -46,31 +48,36 @@ export default class App extends Component<Props, State> {
     );
   }
 
-  estudianteActual() {
-    const usuarioActual = this.state.usuarioActual;
+  usuarioActual() {
+    const idUsuarioActual = this.state.idUsuarioActual;
+    if (!idUsuarioActual) return null;
+
+    const usuarioActual = this.state.curso.personas.find(p => p.id === idUsuarioActual);
+
     if (!usuarioActual) throw new Error();
 
-    const estudianteActual = this.state.curso.personas.find(p => p.id === usuarioActual.idPersona);
-
-    if (!estudianteActual) throw new Error();
-
-    return estudianteActual;
+    return usuarioActual;
   }
 
   async entrarComo(nombre: string) {
-    const estudianteActual = crearEstudiante(nombre);
-    const usuarioActual = { idPersona: estudianteActual.id, esAdmin: true };
-    const curso = this.state.curso.cuando(entra(estudianteActual));
-    this.setState({ usuarioActual, curso })
+    const usuarioActual = this.props.docente ? crearDocente(nombre) : crearEstudiante(nombre);
+    const curso = this.state.curso.cuando(entra(usuarioActual));
+    this.setState({ idUsuarioActual: usuarioActual.id, curso })
   }
 
   async bajarLaMano() {
-    const curso = this.state.curso.cuando(bajaLaMano(this.estudianteActual()));
+    const usuarioActual = this.usuarioActual();
+    if (!usuarioActual) throw new Error();
+
+    const curso = this.state.curso.cuando(bajaLaMano(usuarioActual));
     this.setState({ curso })
   }
 
   async levantarLaMano() {
-    const curso = this.state.curso.cuando(levantaLaMano(this.estudianteActual()));
+    const usuarioActual = this.usuarioActual();
+    if (!usuarioActual) throw new Error();
+
+    const curso = this.state.curso.cuando(levantaLaMano(usuarioActual));
     this.setState({ curso })
   }
 

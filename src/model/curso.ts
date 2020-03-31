@@ -4,6 +4,7 @@ export type Persona = {
     readonly id: IdPersona;
     readonly nombre: string;
     readonly manoLevantada: boolean;
+    readonly esDocente: boolean;
 }
 
 export type IdPersona = string;
@@ -79,11 +80,21 @@ export function crearCursoCon(...personas : Persona[]) {
     return new Curso(personas);
 }
 
+export function crearDocente(nombre: string) : Persona {
+    return {
+        id: generateUUID(),
+        nombre,
+        manoLevantada: false,
+        esDocente: true,
+    }
+}
+
 export function crearEstudiante(nombre: string) : Persona {
     return {
         id: generateUUID(),
         nombre,
-        manoLevantada: false
+        manoLevantada: false,
+        esDocente: false,
     }
 }
 

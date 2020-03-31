@@ -4,9 +4,11 @@ import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 
+const esDocente = window.location.pathname === '/docente';
+
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <App docente={esDocente} />
   </React.StrictMode>,
   document.getElementById('root')
 );
