@@ -26,13 +26,13 @@ const colores: SemanticCOLORS[] = [
 
 export default function VistaCurso({ usuarioActual, curso } : Props) {
     return (
-        <Segment fluid>
+        <Segment>
             <Header as='h1' color='blue' dividing>
                 Clase de Objetos 3
             </Header>
 
             <List className='lista-participantes' divided verticalAlign='middle' size='big' relaxed='very'>
-                { curso.personas.map(persona => <ListItemPersona persona={persona} usuarioActual={usuarioActual} />) }
+                { curso.personas.map(persona => <ListItemPersona key={persona.id} persona={persona} usuarioActual={usuarioActual} />) }
             </List>
 
             <Divider />
