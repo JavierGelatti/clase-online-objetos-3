@@ -1,12 +1,12 @@
 import { v4 as generateUUID } from 'uuid';
 
-type Persona = {
+export type Persona = {
     readonly id: IdPersona;
     readonly nombre: string;
     readonly manoLevantada: boolean;
 }
 
-type IdPersona = string;
+export type IdPersona = string;
 
 type EntraAlguien = {
     kind: "entra-alguien",
@@ -30,7 +30,7 @@ type AlguienBajaLaMano = {
 
 type Evento = EntraAlguien | SaleAlguien | AlguienLevantaLaMano | AlguienBajaLaMano;
 
-class Curso {
+export class Curso {
     private _personas: Persona[];
 
     constructor(personasEnElCurso: Persona[] = []) {
@@ -38,6 +38,7 @@ class Curso {
     }
 
     cuando(...eventos: Evento[]): Curso {
+        // eslint-disable-next-line array-callback-return
         return eventos.reduce((curso: Curso, evento: Evento) => {
             switch(evento.kind) {
                 case "entra-alguien":

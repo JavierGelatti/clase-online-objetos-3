@@ -1,26 +1,15 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import VistaCurso from './VistaCurso';
+import { crearEstudiante, crearCursoCon, levantandoLaMano } from '../model/curso';
 
-function App() {
+export default function App() {
+  const pepe = levantandoLaMano(crearEstudiante("Pepe Sánchez"));
+  const marta = crearEstudiante("Marta Gómez");
+  const mirta = crearEstudiante("Mirta Pérez");
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <VistaCurso usuarioActual={{...marta, esAdmin: true}} curso={crearCursoCon(mirta, pepe, marta)} />
     </div>
   );
 }
-
-export default App;

@@ -11,3 +11,45 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.App {
+  margin: 2em auto;
+  padding: 0;
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+}
+
+.formulario-login {
+  margin: 0 auto;
+  width: 100%;
+  max-width: 300px !important;
+}
+
+.lista-participantes {
+  margin: 2em auto !important;
+  width: fit-content;
+  text-align: left;
+}
+
+.lista-participantes .item {
+  padding-left: 1em !important;
+}
+
+.lista-participantes .item .header {
+  padding-right: 5em !important;
+}
+
+.lista-participantes .item .icon {
+  position: relative;
+}
+
+.lista-participantes .item .indicador-vos {
+  font-size: initial;
+  text-align: right;
+  padding-right: .5em;
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%) translateX(-100%);
+}
