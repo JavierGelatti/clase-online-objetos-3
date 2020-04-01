@@ -1,64 +1,62 @@
 import { crearEstudiante, Persona, Curso, entra, bajaLaMano, levantaLaMano, crearDocente, IdPersona, Evento, sale } from '../model/curso';
 import { deserializarCurso, serializarEvento } from '../model/jsonCodecs';
+import { v4 as generateUUID } from 'uuid';
 
 type ObservadorCurso = (cursoRemoto: CursoRemoto) => void;
 
+type Conexion = ConexionConElBackend;
 class ConexionConElBackend {
+    private readonly configuracion: {
+        idConexion: string,
+        onConnected: (conexion: Conexion) => void,
+        onUpdate: (curso: Curso, conexion: Conexion) => void,
+    };
     private _websocket: WebSocket | null;
-    private cursoRemoto: CursoRemoto | null;
-    private cuandoSeCreeUnCursoRemoto: ((cr: CursoRemoto) => void);
     private eventosPendientesDeEnvio: Evento[];
-    private readonly usuarioActual: Persona;
 
-    constructor(nombre: string, esDocente: boolean) {
-        this.usuarioActual = esDocente ? crearDocente(nombre) : crearEstudiante(nombre);
-        this.cursoRemoto = null;
-        this.eventosPendientesDeEnvio = [];
-        this.cuandoSeCreeUnCursoRemoto = _ => {};
+    constructor(configuracion: object) {
+        const configuracionPorDefecto = {
+            idConexion: generateUUID(),
+            onConnected: () => {},
+            onUpdate: () => {},
+        };
+        this.configuracion = Object.assign(configuracionPorDefecto, configuracion);
         this._websocket = null;
+        this.eventosPendientesDeEnvio = [];
     }
 
-    iniciar(): Promise<CursoRemoto> {
-        return new Promise(resolve => {
-            debugger;
-            this.conectarseAWebSocket();
-            this.cuandoSeCreeUnCursoRemoto = resolve;
-        });
-    }
-
-    private async conectarseAWebSocket() {
+    iniciar() {
         this._websocket = this.crearWebsocket();
+    }
 
-        while (this.eventosPendientesDeEnvio.length > 0) {
-            this.enviarEvento(this.eventosPendientesDeEnvio.pop()!);
-        }
+    get idConexion() {
+        return this.configuracion.idConexion;
+    }
+
+    get websocket(): WebSocket {
+        if (!this._websocket) throw new Error('El websocket todavía no está inicializado');
+
+        return this._websocket;
     }
 
     private crearWebsocket() {
-        const websocket = new WebSocket(`ws://localhost:8080/ws/${this.usuarioActual.id}`);
+        const websocket = new WebSocket(`ws://localhost:8080/ws/${this.idConexion}`);
 
         websocket.onopen = (evt) => {
             console.log('Websocket abierto!', evt);
-
-            // Salir del curso si se cierra la ventana del navegador
-            window.onbeforeunload = () => {
-                this.enviarEvento(sale(this.usuarioActual));
-                websocket.close()
-            };
-
-            this.enviarEvento(entra(this.usuarioActual));
+            this.onConnected();
         };
 
         websocket.onmessage = (msg) => {
             console.log('Se recibió un mensaje:', msg);
             const cursoActual = deserializarCurso(msg.data);
-            this.actualizarCursoCon(cursoActual);
+            this.onUpdate(cursoActual);
         };
 
         websocket.onclose = (evt) => {
             console.log('Websocket cerrado.', evt);
 
-            esperar(500).then(() => this.conectarseAWebSocket());
+            esperar(500).then(() => this.onReconnect(this.crearWebsocket()));
         };
 
         websocket.onerror = (evt) => console.error('Error en el websocket:', evt);
@@ -66,38 +64,34 @@ class ConexionConElBackend {
         return websocket;
     }
 
-    private actualizarCursoCon(cursoActual: Curso) {
-        if (!cursoActual.contieneA(this.usuarioActual)) {
-            this.enviarEvento(entra(this.usuarioActual));
-            return;
-        }
+    private onReconnect(ws: WebSocket) {
+        this._websocket = ws;
 
-        if (!this.cursoRemoto) {
-            this.cursoRemoto = this.crearCursoRemoto(cursoActual);
+        while (this.eventosPendientesDeEnvio.length > 0) {
+            this.enviarEvento(this.eventosPendientesDeEnvio.pop()!);
         }
-
-        this.cursoRemoto.notificarCambio(cursoActual);
     }
 
-    private crearCursoRemoto(curso: Curso) {
-        const cursoRemoto = new CursoRemoto(this.usuarioActual.id, curso, evento => this.enviarEvento(evento));
-        this.cuandoSeCreeUnCursoRemoto(cursoRemoto);
-        return cursoRemoto;
+    private onUpdate(cursoActual: Curso) {
+        this.configuracion.onUpdate(cursoActual, this);
     }
 
-    private async enviarEvento(evento: Evento) {
+    private onConnected() {
+        this.configuracion.onConnected(this);
+    }
+
+    disconnect() {
+        this._websocket?.close();
+    }
+
+    async enviarEvento(evento: Evento) {
         if (this.websocket.readyState === WebSocket.CLOSED) {
+            console.log("Se encoló un evento para ser enviado más tarde:", evento);
             this.eventosPendientesDeEnvio.push(evento);
         } else {
             console.log("Se envió un evento:", evento);
             this.websocket.send(serializarEvento(evento));
         }
-    }
-
-    private get websocket(): WebSocket {
-        if (!this._websocket) throw new Error('El websocket todavía no está inicializado');
-
-        return this._websocket;
     }
 }
 
@@ -107,8 +101,37 @@ export class CursoRemoto {
   private _onChange: ObservadorCurso;
   curso: Curso;
 
-  static conectarseComo(nombre: string, esDocente: boolean) {
-    return new ConexionConElBackend(nombre, esDocente).iniciar();
+  static conectarseComo(nombre: string, esDocente: boolean): Promise<CursoRemoto> {
+    const usuarioActual = esDocente ? crearDocente(nombre) : crearEstudiante(nombre);
+    let cursoRemoto: CursoRemoto | null = null;
+
+    return new Promise(resolve => {
+        new ConexionConElBackend({
+            idConexion: usuarioActual.id,
+            onConnected: (conexion: Conexion) => {
+                conexion.enviarEvento(entra(usuarioActual));
+
+                // Salir del curso si se cierra la ventana del navegador
+                window.onbeforeunload = () => {
+                    conexion.enviarEvento(sale(usuarioActual));
+                    conexion.disconnect()
+                };
+            },
+            onUpdate: (cursoActual: Curso, conexion: Conexion) => {
+                if (!cursoActual.contieneA(usuarioActual)) {
+                    conexion.enviarEvento(entra(usuarioActual));
+                    return;
+                }
+
+                if (!cursoRemoto) {
+                    cursoRemoto = new CursoRemoto(usuarioActual.id, cursoActual, evento => conexion.enviarEvento(evento));
+                    resolve(cursoRemoto);
+                }
+
+                cursoRemoto.notificarCambio(cursoActual);
+            },
+        }).iniciar();
+    });
   }
 
   constructor(idUsuarioActual: IdPersona, curso: Curso, enviarEvento: (evento: Evento) => void) {
