@@ -70,6 +70,14 @@ export class Curso {
         const [personasConLaManoLevantada, personasConLaManoBajada] = partition(this._personas, p => p.manoLevantada);
         return [...personasConLaManoLevantada, ...personasConLaManoBajada];
     }
+
+    contieneA(unaPersona: Persona) {
+        return !!this.personaIdentificadaCon(unaPersona.id)
+    }
+
+    personaIdentificadaCon(idPersona: IdPersona) {
+        return this.personas.find(p => p.id === idPersona);
+    }
 }
 
 export function crearCurso() {

@@ -2,33 +2,43 @@ import React, { Component } from 'react';
 import VistaCurso from './VistaCurso';
 import FormularioLogin from './FormularioLogin';
 import { CursoRemoto } from './CursoRemoto';
+import { Persona, Curso } from '../model/curso';
 
 type Props = {
   docente: boolean,
 }
 
 type State = {
-  cursoRemoto: CursoRemoto | null,
+  usuarioActual: Persona | null,
+  curso: Curso | null,
 }
 
 export default class App extends Component<Props, State> {
+  cosasCargando: (() => void)[];
+  cursoRemoto: CursoRemoto | null;
+
   constructor(props: Props) {
     super(props);
-    this.state = { cursoRemoto: null }
+    this.state = {
+      usuarioActual: null,
+      curso: null,
+    }
+    this.cosasCargando = [];
+    this.cursoRemoto = null;
   }
 
   render() {
-    const cursoRemoto = this.state.cursoRemoto;
+    const { usuarioActual, curso } = this.state;
     return (
       <div className="App">
         {
-          cursoRemoto ?
+          usuarioActual && curso ?
             <VistaCurso
-              usuarioActual={cursoRemoto.usuarioActual}
-              curso={cursoRemoto.curso}
-              onBajarMano={() => cursoRemoto.bajarLaMano()}
-              onLevantarMano={() => cursoRemoto.levantarLaMano()}
-              onBajarleLaManoA={persona => cursoRemoto.bajarleLaManoA(persona)}
+              usuarioActual={usuarioActual}
+              curso={curso}
+              onBajarMano={() => this.bajarLaMano()}
+              onLevantarMano={() => this.levantarLaMano()}
+              onBajarleLaManoA={persona => this.bajarleLaManoA(persona)}
             />
             :
             <FormularioLogin onLogin={nombre => this.entrarComo(nombre)} />
@@ -37,7 +47,40 @@ export default class App extends Component<Props, State> {
     );
   }
 
+  bajarLaMano() {
+    return this.esperandoUnCambio(() => {
+      this.cursoRemoto?.bajarLaMano();
+    });
+  }
+
+  levantarLaMano() {
+    return this.esperandoUnCambio(() => {
+      this.cursoRemoto?.levantarLaMano();
+    });
+  }
+
+  bajarleLaManoA(persona: Persona) {
+    return this.esperandoUnCambio(() => {
+      this.cursoRemoto?.bajarleLaManoA(persona);
+    });
+  }
+
+  esperandoUnCambio(hacerAlgo: () => void) {
+    return new Promise(resolve => {
+      hacerAlgo();
+      this.cosasCargando.push(resolve);
+    });
+  }
+
+  huboUnCambio(cursoRemoto: CursoRemoto) {
+    this.setState({ usuarioActual: cursoRemoto.usuarioActual, curso: cursoRemoto.curso });
+    this.cosasCargando.forEach(resolve => resolve());
+    this.cosasCargando = [];
+  }
+
   async entrarComo(nombre: string) {
-    return CursoRemoto.conectarseComo(nombre, this.props.docente, cursoRemoto => this.setState({ cursoRemoto }));
+    const cursoRemoto = await CursoRemoto.conectarseComo(nombre, this.props.docente);
+    this.cursoRemoto = cursoRemoto;
+    this.cursoRemoto.onChange = () => this.huboUnCambio(cursoRemoto);
   }
 }

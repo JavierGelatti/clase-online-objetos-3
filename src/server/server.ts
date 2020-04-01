@@ -34,7 +34,7 @@ app.ws('/ws/:idPersona', (ws, req) => {
     recibirEvento(saleAlguienConId(conexion.idPersona));
   });
 
-  const lala = setInterval(() => {
+  const heartbeat = setInterval(() => {
     if (conexion.estaViva && !conexion.esperandoPong) {
       conexion.esperandoPong = true;
       ws.ping();
@@ -44,7 +44,7 @@ app.ws('/ws/:idPersona', (ws, req) => {
         ws.terminate();
       }
 
-      clearInterval(lala);
+      clearInterval(heartbeat);
     }
   }, 5_000);
 
@@ -65,7 +65,9 @@ app.ws('/ws/:idPersona', (ws, req) => {
 
       const estadoDelCurso = serializarCurso(curso);
       for (const conexion of personasConectadas) {
-        conexion.websocket.send(estadoDelCurso);
+        if (conexion.estaViva) {
+          conexion.websocket.send(estadoDelCurso);
+        }
       }
   }
 });
