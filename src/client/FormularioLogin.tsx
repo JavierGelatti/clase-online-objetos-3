@@ -3,6 +3,7 @@ import { Input, Form, Button, Icon, Segment } from 'semantic-ui-react'
 
 type Props = {
   onLogin: (nombre: string) => Promise<any>,
+  comoDocente: boolean,
 }
 
 type State = {
@@ -49,7 +50,7 @@ export default class FormularioLogin extends Component<Props, State> {
             onClick={() => this.enviar()}
             primary fluid icon
           >
-            Entrar
+            { this.props.comoDocente ? "Entrar como docente" : "Entrar" }
             <Icon name='sign in' />
           </Button>
         </Form>

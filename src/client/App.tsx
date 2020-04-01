@@ -5,7 +5,7 @@ import { CursoRemoto } from './CursoRemoto';
 import { Persona, Curso } from '../model/curso';
 
 type Props = {
-  docente: boolean,
+  esDocente: boolean,
 }
 
 type State = {
@@ -41,7 +41,10 @@ export default class App extends Component<Props, State> {
               onBajarleLaManoA={persona => this.bajarleLaManoA(persona)}
             />
             :
-            <FormularioLogin onLogin={nombre => this.entrarComo(nombre)} />
+            <FormularioLogin
+              onLogin={nombre => this.entrarComo(nombre)}
+              comoDocente={ this.props.esDocente }
+            />
         }
       </div>
     );
@@ -79,7 +82,7 @@ export default class App extends Component<Props, State> {
   }
 
   async entrarComo(nombre: string) {
-    const cursoRemoto = await CursoRemoto.conectarseComo(nombre, this.props.docente);
+    const cursoRemoto = await CursoRemoto.conectarseComo(nombre, this.props.esDocente);
     this.cursoRemoto = cursoRemoto;
     this.cursoRemoto.onChange = () => this.huboUnCambio(cursoRemoto);
   }

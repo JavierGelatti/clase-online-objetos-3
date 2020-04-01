@@ -8,7 +8,7 @@ const esDocente = window.location.pathname === '/docente';
 
 ReactDOM.render(
   <React.StrictMode>
-    <App docente={esDocente} />
+    <App esDocente={esDocente} />
   </React.StrictMode>,
   document.getElementById('root')
 );
