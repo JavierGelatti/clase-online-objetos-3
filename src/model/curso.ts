@@ -47,7 +47,13 @@ export class Curso {
                 case "sale-alguien":
                     return curso.sin(evento.idPersona);
                 case "levanta-la-mano":
-                    return new Curso(curso._personas.map(p => p.id === evento.idPersona ? levantandoLaMano(p) : p))
+                    const persona = curso.personaIdentificadaCon(evento.idPersona);
+                    if (!persona) return this;
+
+                    const elResto = curso.todosMenosPersonaConId(persona.id);
+                    const [personasConLaManoLevantada, personasConLaManoBajada] = partition(elResto, p => p.manoLevantada);
+
+                    return new Curso([...personasConLaManoLevantada, levantandoLaMano(persona), ...personasConLaManoBajada]);
                 case "baja-la-mano":
                     return new Curso(curso._personas.map(p => p.id === evento.idPersona ? bajandoLaMano(p) : p))
             }
@@ -55,7 +61,11 @@ export class Curso {
     }
 
     sin(idPersonaQueSale: IdPersona): Curso {
-        return new Curso(this._personas.filter(p => p.id !== idPersonaQueSale))
+        return new Curso(this.todosMenosPersonaConId(idPersonaQueSale));
+    }
+
+    private todosMenosPersonaConId(idPersona: IdPersona) {
+        return this._personas.filter(p => p.id !== idPersona);
     }
 
     agregandoA(personaQueEntra: Persona): Curso {
@@ -76,7 +86,7 @@ export class Curso {
     }
 
     personaIdentificadaCon(idPersona: IdPersona) {
-        return this.personas.find(p => p.id === idPersona);
+        return this._personas.find(p => p.id === idPersona);
     }
 }
 

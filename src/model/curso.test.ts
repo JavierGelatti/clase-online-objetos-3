@@ -13,12 +13,12 @@ describe('orden de los estudiantes en un curso', () => {
             entra(marta),
             entra(pablo),
             entra(mirta),
-            levantaLaMano(marta),
             levantaLaMano(mirta),
+            levantaLaMano(marta),
         );
 
         expect(cursoFinal.personas).toEqual([
-            levantandoLaMano(marta), levantandoLaMano(mirta), bajandoLaMano(pepe), bajandoLaMano(pablo)
+            levantandoLaMano(mirta), levantandoLaMano(marta), bajandoLaMano(pepe), bajandoLaMano(pablo)
         ]);
     });
 });
