@@ -25,8 +25,12 @@ app.post('/evento', (req, res) => {
 
   try {
     const evento = deserializarEvento(req.body);
-    const curso = recibirEvento(evento);
-    res.send(serializarCurso(curso));
+    recibirEvento(evento);
+
+    res.end(
+      serializarCurso(curso),
+      difundirEstadoDelCurso
+    );
   } catch (error) {
     console.error(error);
   }
@@ -52,6 +56,7 @@ app.ws('/:idPersona', (ws, req) => {
   ws.on('close', () => {
     conexion.estaViva = false;
     recibirEvento(saleAlguienConId(conexion.idPersona));
+    difundirEstadoDelCurso();
   });
 
   const heartbeat = setInterval(() => {
@@ -73,15 +78,15 @@ app.ws('/:idPersona', (ws, req) => {
 
 function recibirEvento(evento: Evento) {
   curso = curso.cuando(evento);
+}
 
+function difundirEstadoDelCurso() {
   const estadoDelCurso = serializarCurso(curso);
 
   personasConectadas = personasConectadas.filter(c => c.estaViva);
   for (const conexion of personasConectadas) {
     conexion.websocket.send(estadoDelCurso);
   }
-
-  return curso;
 }
 
 app.listen(puerto);
