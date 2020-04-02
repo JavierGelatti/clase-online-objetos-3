@@ -2,16 +2,16 @@ import { Evento, Curso } from "../../model/curso";
 import { serializarEvento, deserializarCurso } from "../../model/jsonCodecs";
 import { esperar } from "../esperar";
 
-export function enviarEvento(evento: Evento): Promise<Curso> {
-  return fetch(`//${window.location.host}/evento`, {
-    method: 'POST',
-    body: serializarEvento(evento),
-  }).then(response => {
-      if (!response.ok) {
-        console.error("Error al comunicarse con el servidor: ", response);
-        return esperar(500).then(() => enviarEvento(evento));
-      }
+export async function enviarEvento(evento: Evento): Promise<Curso> {
+    const response = await fetch(`//${window.location.host}/evento`, {
+        method: 'POST',
+        body: serializarEvento(evento),
+    });
 
-      return response.text().then(deserializarCurso);
-  });
+    if (!response.ok) {
+        console.error("Error al comunicarse con el servidor: ", response);
+        return esperar(1_000).then(() => enviarEvento(evento));
+    }
+
+    return deserializarCurso(await response.text());
 }
