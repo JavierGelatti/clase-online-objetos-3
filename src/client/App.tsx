@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import VistaCurso from './VistaCurso';
 import FormularioLogin from './FormularioLogin';
-import { CursoRemoto } from './CursoRemoto';
 import { Persona, Curso } from '../model/curso';
+import { ClaseRemota } from './conexion/ClaseRemota';
 
 type Props = {
   esDocente: boolean,
@@ -14,8 +14,7 @@ type State = {
 }
 
 export default class App extends Component<Props, State> {
-  cosasCargando: (() => void)[];
-  cursoRemoto: CursoRemoto | null;
+  claseRemota: ClaseRemota | null;
 
   constructor(props: Props) {
     super(props);
@@ -23,8 +22,7 @@ export default class App extends Component<Props, State> {
       usuarioActual: null,
       curso: null,
     }
-    this.cosasCargando = [];
-    this.cursoRemoto = null;
+    this.claseRemota = null;
   }
 
   render() {
@@ -36,9 +34,9 @@ export default class App extends Component<Props, State> {
             <VistaCurso
               usuarioActual={usuarioActual}
               curso={curso}
-              onBajarMano={() => this.bajarLaMano()}
-              onLevantarMano={() => this.levantarLaMano()}
-              onBajarleLaManoA={persona => this.bajarleLaManoA(persona)}
+              onBajarMano={() => this.claseRemota!.bajarLaMano()}
+              onLevantarMano={() => this.claseRemota!.levantarLaMano()}
+              onBajarleLaManoA={persona => this.claseRemota!.bajarleLaManoA(persona)}
             />
             :
             <FormularioLogin
@@ -50,40 +48,13 @@ export default class App extends Component<Props, State> {
     );
   }
 
-  bajarLaMano() {
-    return this.esperandoUnCambio(() => {
-      this.cursoRemoto?.bajarLaMano();
-    });
-  }
-
-  levantarLaMano() {
-    return this.esperandoUnCambio(() => {
-      this.cursoRemoto?.levantarLaMano();
-    });
-  }
-
-  bajarleLaManoA(persona: Persona) {
-    return this.esperandoUnCambio(() => {
-      this.cursoRemoto?.bajarleLaManoA(persona);
-    });
-  }
-
-  esperandoUnCambio(hacerAlgo: () => void) {
-    return new Promise(resolve => {
-      hacerAlgo();
-      this.cosasCargando.push(resolve);
-    });
-  }
-
   huboUnCambio(usuarioActual: Persona, curso: Curso) {
     this.setState({ usuarioActual, curso });
-    this.cosasCargando.forEach(resolve => resolve());
-    this.cosasCargando = [];
   }
 
   async entrarComo(nombre: string) {
-    const cursoRemoto = await CursoRemoto.conectarseComo(nombre, this.props.esDocente);
-    this.cursoRemoto = cursoRemoto;
-    this.cursoRemoto.onChange = this.huboUnCambio.bind(this);
+    const claseRemota = await ClaseRemota.conectarseComo(nombre, this.props.esDocente);
+    this.claseRemota = claseRemota;
+    this.claseRemota.onChange = this.huboUnCambio.bind(this);
   }
 }

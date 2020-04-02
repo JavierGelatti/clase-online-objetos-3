@@ -63,9 +63,7 @@ export default class FormularioLogin extends Component<Props, State> {
       this.props.onLogin(this.state.nombreIngresado)
         .catch(error => {
           console.error("El error que te salió fue causado por:", error);
-          this.setState({ error: true });
-        }).finally(() => {
-          this.setState({ cargando: false });
+          this.setState({ error: true, cargando: false });
         });
     });
   }

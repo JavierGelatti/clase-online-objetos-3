@@ -4,6 +4,7 @@ import expressWs from 'express-ws';
 import * as Websocket from 'ws';
 import { crearCurso, IdPersona, Evento, saleAlguienConId } from '../model/curso';
 import { serializarCurso, deserializarEvento } from '../model/jsonCodecs';
+import bodyParser from 'body-parser';
 
 const app = expressWs(express()).app;
 const puerto = process.env.PORT || 8080;
@@ -17,10 +18,29 @@ app.use(express.static(frontendBuildPath));
 
 let curso = crearCurso();
 
+// Eventos
+app.use(bodyParser.text());
+app.post('/evento', (req, res) => {
+  console.log('Se recibió el evento', req.body);
+
+  try {
+    const evento = deserializarEvento(req.body);
+    const curso = recibirEvento(evento);
+    res.send(serializarCurso(curso));
+  } catch (error) {
+    console.error(error);
+  }
+});
+
+// Pedir el estado del curso
+app.get('/curso', (req, res) => {
+  res.send(serializarCurso(curso));
+});
+
 // Websocket
 type Conexion = { idPersona: IdPersona, websocket: Websocket, estaViva: boolean, esperandoPong: boolean };
 let personasConectadas: Conexion[] = [];
-app.ws('/ws/:idPersona', (ws, req) => {
+app.ws('/:idPersona', (ws, req) => {
   const conexion = { idPersona: req.params.idPersona, websocket: ws, estaViva: true, esperandoPong: false };
   personasConectadas.push(conexion);
 
@@ -40,38 +60,28 @@ app.ws('/ws/:idPersona', (ws, req) => {
       return;
     }
 
-    if (conexion.esperandoPong) {
+    if (!conexion.esperandoPong) {
+      conexion.esperandoPong = true;
+      ws.ping();
+    } else {
       conexion.estaViva = false;
       ws.terminate();
       clearInterval(heartbeat);
-    } else {
-      conexion.esperandoPong = true;
-      ws.ping();
     }
   }, 5_000);
-
-  ws.on('message', msg => {
-    console.log(`Se recibió el mensaje ${msg}`);
-    conexion.estaViva = true;
-
-    try {
-      recibirEvento(deserializarEvento(msg.toString()));
-    } catch (error) {
-      console.error(error);
-    }
-  });
-  console.log('socket', req);
-
-  function recibirEvento(evento: Evento) {
-      curso = curso.cuando(evento);
-
-      const estadoDelCurso = serializarCurso(curso);
-      for (const conexion of personasConectadas) {
-        if (conexion.estaViva) {
-          conexion.websocket.send(estadoDelCurso);
-        }
-      }
-  }
 });
+
+function recibirEvento(evento: Evento) {
+  curso = curso.cuando(evento);
+
+  const estadoDelCurso = serializarCurso(curso);
+
+  personasConectadas = personasConectadas.filter(c => c.estaViva);
+  for (const conexion of personasConectadas) {
+    conexion.websocket.send(estadoDelCurso);
+  }
+
+  return curso;
+}
 
 app.listen(puerto);

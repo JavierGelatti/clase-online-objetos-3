@@ -40,10 +40,12 @@ export function deserializarEvento(json: string): Evento {
 }
 
 export function serializarCurso(curso: Curso) {
-    return JSON.stringify(curso.personas);
+    return JSON.stringify({ timestamp: curso.timestamp, personas: curso.personas });
 }
 
 export function deserializarCurso(json: string): Curso {
-    const personas = array(decoderPersona).runWithException(JSON.parse(json));
-    return new Curso(personas);
+    const datos = JSON.parse(json);
+    const timestamp = new Date(datos.timestamp);
+    const personas = array(decoderPersona).runWithException(datos.personas);
+    return new Curso(personas, timestamp);
 }

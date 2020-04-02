@@ -32,10 +32,12 @@ type AlguienBajaLaMano = {
 export type Evento = EntraAlguien | SaleAlguien | AlguienLevantaLaMano | AlguienBajaLaMano;
 
 export class Curso {
+    readonly timestamp: Date;
     private _personas: Persona[];
 
-    constructor(personasEnElCurso: Persona[] = []) {
+    constructor(personasEnElCurso: Persona[] = [], timestamp = new Date()) {
         this._personas = personasEnElCurso;
+        this.timestamp = timestamp;
     }
 
     cuando(...eventos: Evento[]): Curso {
