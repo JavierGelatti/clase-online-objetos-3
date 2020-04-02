@@ -1,6 +1,7 @@
 import { Curso } from "../../model/curso";
 import { deserializarCurso } from "../../model/jsonCodecs";
-import { esperar } from "../utils";
+import { esperar } from "../esperar";
+import { consultarEstadoCurso } from "./consultarEstadoCurso";
 
 type Configuracion = {
     idConexion: string,
@@ -56,6 +57,9 @@ export class SincronizadorCurso {
 
     private reconectar() {
         this.iniciar();
+
+        consultarEstadoCurso()
+            .then(cursoActual => this.onUpdate(cursoActual));
     }
 
     private onUpdate(cursoActual: Curso) {
