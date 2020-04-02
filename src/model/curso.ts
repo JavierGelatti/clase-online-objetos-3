@@ -96,6 +96,10 @@ export function crearCurso() {
     return crearCursoCon(...[]);
 }
 
+export function crearCursoConTimestamp(timestamp: Date) {
+    return new Curso([], timestamp);
+}
+
 export function crearCursoCon(...personas : Persona[]) {
     return new Curso(personas);
 }

@@ -1,4 +1,4 @@
-import { levantaLaMano, crearEstudiante, crearCurso, entra, levantandoLaMano, bajandoLaMano, crearCursoCon, sale, bajaLaMano } from "./curso";
+import { levantaLaMano, crearEstudiante, crearCurso, entra, levantandoLaMano, bajandoLaMano, crearCursoCon, sale, bajaLaMano, crearCursoConTimestamp } from "./curso";
 
 describe('orden de los estudiantes en un curso', () => {
     test('primero los estudiantes que levantaron la mano en el orden en el que lo hicieron, y luego el resto en el orden de entrada', () => {
@@ -151,5 +151,14 @@ describe('eventos que suceden en un curso', () => {
         );
 
         expect(cursoFinal.personas).toEqual([levantandoLaMano(pepe), bajandoLaMano(marta)]);
-    })
+    });
+
+    test('se actualiza el timestamp del curso luego de un evento', () => {
+        const cursoVacio = crearCursoConTimestamp(new Date(100));
+        const alguien = crearEstudiante("Pepe");
+
+        const cursoAhora = cursoVacio.cuando(entra(alguien));
+
+        expect(cursoAhora.timestamp.getTime()).toBeGreaterThan(cursoVacio.timestamp.getTime());
+    });
 });
