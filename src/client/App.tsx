@@ -75,8 +75,8 @@ export default class App extends Component<Props, State> {
     });
   }
 
-  huboUnCambio(cursoRemoto: CursoRemoto) {
-    this.setState({ usuarioActual: cursoRemoto.usuarioActual, curso: cursoRemoto.curso });
+  huboUnCambio(usuarioActual: Persona, curso: Curso) {
+    this.setState({ usuarioActual, curso });
     this.cosasCargando.forEach(resolve => resolve());
     this.cosasCargando = [];
   }
@@ -84,6 +84,6 @@ export default class App extends Component<Props, State> {
   async entrarComo(nombre: string) {
     const cursoRemoto = await CursoRemoto.conectarseComo(nombre, this.props.esDocente);
     this.cursoRemoto = cursoRemoto;
-    this.cursoRemoto.onChange = () => this.huboUnCambio(cursoRemoto);
+    this.cursoRemoto.onChange = this.huboUnCambio.bind(this);
   }
 }

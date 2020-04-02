@@ -2,7 +2,7 @@ import { crearEstudiante, Persona, Curso, entra, bajaLaMano, levantaLaMano, crea
 import { deserializarCurso, serializarEvento } from '../model/jsonCodecs';
 import { v4 as generateUUID } from 'uuid';
 
-type ObservadorCurso = (cursoRemoto: CursoRemoto) => void;
+type ObservadorCurso = (usuarioActual: Persona, curso: Curso) => void;
 
 type Conexion = ConexionConElBackend;
 class ConexionConElBackend {
@@ -66,9 +66,12 @@ class ConexionConElBackend {
 
     private onReconnect(ws: WebSocket) {
         this._websocket = ws;
+        this.enviarEventosPendientes();
+    }
 
+    private enviarEventosPendientes() {
         while (this.eventosPendientesDeEnvio.length > 0) {
-            this.enviarEvento(this.eventosPendientesDeEnvio.pop()!);
+            this.enviarEvento(this.eventosPendientesDeEnvio.shift()!);
         }
     }
 
@@ -78,6 +81,7 @@ class ConexionConElBackend {
 
     private onConnected() {
         this.configuracion.onConnected(this);
+        this.enviarEventosPendientes();
     }
 
     disconnect() {
@@ -85,7 +89,7 @@ class ConexionConElBackend {
     }
 
     async enviarEvento(evento: Evento) {
-        if (this.websocket.readyState === WebSocket.CLOSED) {
+        if (this.websocket.readyState !== WebSocket.OPEN) {
             console.log("Se encoló un evento para ser enviado más tarde:", evento);
             this.eventosPendientesDeEnvio.push(evento);
         } else {
@@ -110,12 +114,6 @@ export class CursoRemoto {
             idConexion: usuarioActual.id,
             onConnected: (conexion: Conexion) => {
                 conexion.enviarEvento(entra(usuarioActual));
-
-                // Salir del curso si se cierra la ventana del navegador
-                window.onbeforeunload = () => {
-                    conexion.enviarEvento(sale(usuarioActual));
-                    conexion.disconnect()
-                };
             },
             onUpdate: (cursoActual: Curso, conexion: Conexion) => {
                 if (!cursoActual.contieneA(usuarioActual)) {
@@ -143,7 +141,7 @@ export class CursoRemoto {
 
   notificarCambio(curso: Curso) {
     this.curso = curso;
-    this._onChange(this);
+    this._onChange(this.usuarioActual, this.curso);
   }
 
   get usuarioActual() {
@@ -156,7 +154,7 @@ export class CursoRemoto {
 
   set onChange(callback: ObservadorCurso) {
     this._onChange = callback;
-    this._onChange(this);
+    this._onChange(this.usuarioActual, this.curso);
   }
 
   levantarLaMano() {

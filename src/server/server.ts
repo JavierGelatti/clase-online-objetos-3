@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import expressWs from 'express-ws';
 import * as Websocket from 'ws';
-import { crearCurso, IdPersona, Evento, sale, saleAlguienConId } from '../model/curso';
+import { crearCurso, IdPersona, Evento, saleAlguienConId } from '../model/curso';
 import { serializarCurso, deserializarEvento } from '../model/jsonCodecs';
 
 const app = expressWs(express()).app;
@@ -35,16 +35,18 @@ app.ws('/ws/:idPersona', (ws, req) => {
   });
 
   const heartbeat = setInterval(() => {
-    if (conexion.estaViva && !conexion.esperandoPong) {
+    if (!conexion.estaViva) {
+      clearInterval(heartbeat);
+      return;
+    }
+
+    if (conexion.esperandoPong) {
+      conexion.estaViva = false;
+      ws.terminate();
+      clearInterval(heartbeat);
+    } else {
       conexion.esperandoPong = true;
       ws.ping();
-    } else {
-      if (conexion.estaViva) {
-        conexion.estaViva = false;
-        ws.terminate();
-      }
-
-      clearInterval(heartbeat);
     }
   }, 5_000);
 

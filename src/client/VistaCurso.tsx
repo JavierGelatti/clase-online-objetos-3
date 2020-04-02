@@ -16,20 +16,6 @@ type State = {
     cargandoBotonDePersonas: Persona[];
 }
 
-const colores: SemanticCOLORS[] = [
-    'red',
-    'orange',
-    'yellow',
-    'green',
-    'teal',
-    'violet',
-    'purple',
-    'pink',
-    'brown',
-    'grey',
-    'black',
-]
-
 export default class VistaCurso extends Component<Props, State> {
     constructor(props: Props) {
         super(props);
@@ -147,38 +133,55 @@ export default class VistaCurso extends Component<Props, State> {
     }
 
     onBajarleLaManoA(unaPersona: Persona) {
-        this.setState({ cargandoBotonDePersonas: [ ...this.state.cargandoBotonDePersonas, unaPersona ] });
-        this.props.onBajarleLaManoA(unaPersona)
-            .catch(error => {
-                console.error("Hubo un error:", error);
-            })
-            .finally(() => {
-                this.setState({ cargandoBotonDePersonas: this.state.cargandoBotonDePersonas.filter(p => p !== unaPersona) });
-            })
+        this.setState({ cargandoBotonDePersonas: [ ...this.state.cargandoBotonDePersonas, unaPersona ] }, () => {
+            this.props.onBajarleLaManoA(unaPersona)
+                .catch(error => {
+                    console.error("Hubo un error:", error);
+                })
+                .finally(() => {
+                    this.setState({ cargandoBotonDePersonas: this.state.cargandoBotonDePersonas.filter(p => p !== unaPersona) });
+                })
+        });
     }
 
     onBajarMano() {
-        this.setState({ cargandoBotonPrincipal: true });
-        this.props.onBajarMano()
-            .catch(error => {
-                console.error("Hubo un error:", error);
-            })
-            .finally(() => {
-                this.setState({ cargandoBotonPrincipal: false });
-            })
+        this.setState({ cargandoBotonPrincipal: true }, () => {
+            this.props.onBajarMano()
+                .catch(error => {
+                    console.error("Hubo un error:", error);
+                })
+                .finally(() => {
+                    this.setState({ cargandoBotonPrincipal: false });
+                })
+        });
     }
 
     onLevantarMano() {
-        this.setState({ cargandoBotonPrincipal: true });
-        this.props.onLevantarMano()
-            .catch(error => {
-                console.error("Hubo un error:", error);
-            })
-            .finally(() => {
-                this.setState({ cargandoBotonPrincipal: false });
-            })
+        this.setState({ cargandoBotonPrincipal: true }, () => {
+            this.props.onLevantarMano()
+                .catch(error => {
+                    console.error("Hubo un error:", error);
+                })
+                .finally(() => {
+                    this.setState({ cargandoBotonPrincipal: false });
+                })
+        });
     }
 }
+
+const colores: SemanticCOLORS[] = [
+    'red',
+    'orange',
+    'yellow',
+    'green',
+    'teal',
+    'violet',
+    'purple',
+    'pink',
+    'brown',
+    'grey',
+    'black',
+]
 
 function idToColor(uuid: string) {
     const primeraParteUuid = parseInt(uuid.split('-')[0], 16);
