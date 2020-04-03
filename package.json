@@ -66,5 +66,8 @@
     "ts-loader": "^6.2.2",
     "webpack-cli": "^3.3.11",
     "webpack-node-externals": "^1.7.2"
+  },
+  "engines": {
+    "node": "13.11.0"
   }
 }
