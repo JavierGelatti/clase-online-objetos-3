@@ -32,7 +32,7 @@ export class SincronizadorCurso {
     }
 
     private crearWebsocket() {
-        const websocket = new WebSocket(`ws://${window.location.host}/${this.idConexion}`);
+        const websocket = new WebSocket(`${window.location.protocol.replace(/^http/, 'ws')}//${window.location.host}/${this.idConexion}`);
 
         websocket.onopen = (evt) => {
             console.log('Websocket abierto!', evt);
