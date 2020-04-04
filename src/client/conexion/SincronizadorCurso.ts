@@ -19,6 +19,9 @@ export class SincronizadorCurso {
 
     iniciar() {
         this._websocket = this.crearWebsocket();
+
+        consultarEstadoCurso()
+            .then(cursoActual => this.onUpdate(cursoActual));
     }
 
     get idConexion() {
@@ -57,9 +60,6 @@ export class SincronizadorCurso {
 
     private reconectar() {
         this.iniciar();
-
-        consultarEstadoCurso()
-            .then(cursoActual => this.onUpdate(cursoActual));
     }
 
     private onUpdate(cursoActual: Curso) {

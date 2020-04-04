@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import expressWs from 'express-ws';
 import * as Websocket from 'ws';
+import { OPEN } from 'ws';
 import { crearCurso, IdPersona, Evento, saleAlguienConId } from '../model/curso';
 import { serializarCurso, deserializarEvento } from '../model/jsonCodecs';
 import bodyParser from 'body-parser';
@@ -12,8 +13,9 @@ const puerto = process.env.PORT || 8080;
 // Servir frontend
 const frontendBuildPath = path.join(__dirname, '..', '..', 'build')
 const frontendIndex = path.resolve(frontendBuildPath, 'index.html');
-app.get('/', (req, res) => res.sendFile(frontendIndex));
-app.get('/docente', (req, res) => res.sendFile(frontendIndex));
+for (const ruta of [ '/', '/docente', '/stream' ]) {
+  app.get(ruta, (req, res) => res.sendFile(frontendIndex));
+}
 app.use(express.static(frontendBuildPath));
 
 let curso = crearCurso();
@@ -85,7 +87,10 @@ function difundirEstadoDelCurso() {
 
   personasConectadas = personasConectadas.filter(c => c.estaViva);
   for (const conexion of personasConectadas) {
-    conexion.websocket.send(estadoDelCurso);
+    // El websocket puede estar en estado "CLOSING", pero conexion.estaViva === true :(
+    if (conexion.websocket.readyState === OPEN) {
+      conexion.websocket.send(estadoDelCurso);
+    }
   }
 }
 

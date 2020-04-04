@@ -3,12 +3,14 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
+import VistaStream from './VistaStream';
 
 const esDocente = window.location.pathname === '/docente';
+const esStream = window.location.pathname === '/stream';
 
 ReactDOM.render(
   <React.StrictMode>
-    <App esDocente={esDocente} />
+    { esStream ? <VistaStream /> : <App esDocente={esDocente} /> }
   </React.StrictMode>,
   document.getElementById('root')
 );

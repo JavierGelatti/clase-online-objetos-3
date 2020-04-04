@@ -90,6 +90,10 @@ export class Curso {
     personaIdentificadaCon(idPersona: IdPersona) {
         return this._personas.find(p => p.id === idPersona);
     }
+
+    cantidadDeManosLevantadas() {
+        return this._personas.filter(p => p.manoLevantada).length;
+    }
 }
 
 export function crearCurso() {
